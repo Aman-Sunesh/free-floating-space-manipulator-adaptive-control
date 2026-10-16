@@ -175,6 +175,6 @@ actual_fig3.png                    Xu's published attitude figure
 
 ## Citation
 
-> S. Xu, H. Wang, D. Zhang, and B. Yang, “Adaptive zero reaction motion control for free-floating space manipulators,” *IEEE Transactions on Aerospace and Electronic Systems*, vol. 52, no. 3, pp. 1067–1076, 2016. DOI: [10.1109/TAES.2016.130715](https://doi.org/10.1109/TAES.2016.130715).
+> S. Xu, H. Wang, D. Zhang, and B. Yang, “Adaptive Zero Reaction Motion Control for Free-Floating Space Manipulators,” *IEEE Transactions on Aerospace and Electronic Systems*, vol. 52, no. 3, pp. 1067–1076, 2016. [IEEE Xplore](https://ieeexplore.ieee.org/document/7511842).
 
 **Independent MATLAB reproduction and numerical evaluation by Aman Sunesh, New York University Abu Dhabi.**
