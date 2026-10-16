@@ -13,12 +13,10 @@ fprintf('========================================\n\n');
 
 
 %% Current configuration
-
 phi = cfg.qm_0;
 
 
 %% Get momentum coupling matrix
-
 [~, Hbm, ~] = momentum_matrices( ...
     phi, ...
     cfg.l, ...
@@ -31,22 +29,14 @@ fprintf('Hbm:\n');
 disp(Hbm);
 
 
-%% ---------------------------------------------------------
-% Compute reaction-null-space projector
-%% ---------------------------------------------------------
-
+% Xu et al. (2016), Eq. (7): Reaction-null-space projector
 T = reaction_null_projector(Hbm);
 
 fprintf('RNS projector T:\n');
 disp(T);
 
 
-%% ---------------------------------------------------------
-% Test 1:
-%
-% Hbm * T should be zero
-%% ---------------------------------------------------------
-
+% Xu et al. (2016), Eq. (7): Hbm * T should be zero
 reaction_matrix = Hbm * T;
 
 fprintf('Hbm * T:\n');
@@ -81,6 +71,7 @@ assert(err_projector < 1e-10, ...
 %% ---------------------------------------------------------
 % Test 3:
 %
+% Xu et al. (2016), Eqs. (6)-(7):
 % Arbitrary zeta projected through T must create
 % zero angular momentum reaction.
 %% ---------------------------------------------------------

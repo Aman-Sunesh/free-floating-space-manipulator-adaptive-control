@@ -8,21 +8,14 @@ addpath(genpath(project_root));
 
 cfg = paper_params();
 
-%% =========================================================
 % Run nonzero-momenta adaptive controller
-%% =========================================================
-
 fprintf('Running nonzero-momenta adaptive controller...\n');
 
 sim_nonzero = simulate_plant(cfg);
 
 
-%% =========================================================
-% Run zero-momenta adaptive controller
-%
-% Needed only for Figs. 2-4.
-%% =========================================================
-
+%% Run zero-momenta adaptive controller
+% Used for comparison in Figs. 2-4.
 have_zero = exist('simulate_zero_momentum_plant', 'file') == 2;
 
 if have_zero
@@ -37,10 +30,7 @@ else
 end
 
 
-%% =========================================================
 % Output directory
-%% =========================================================
-
 output_dir = fullfile(project_root, 'results', 'figures');
 
 if ~exist(output_dir, 'dir')
@@ -48,10 +38,7 @@ if ~exist(output_dir, 'dir')
 end
 
 
-%% =========================================================
-% Common settings
-%% =========================================================
-
+% Common plot settings
 t = sim_nonzero.t;
 
 lw = 1.2;
@@ -60,11 +47,7 @@ blue = [0.0, 0.25, 0.80];
 red  = [1.0, 0.0, 0.0];
 
 
-%% =========================================================
-% FIGURE 2
-% Spacecraft angular velocity
-%% =========================================================
-
+%% Figure 2: Spacecraft angular velocity
 figure('Name', 'Fig. 2 - Spacecraft Angular Velocity', ...
        'Color', 'w');
 
@@ -125,11 +108,7 @@ exportgraphics( ...
     'BackgroundColor', 'white');
 
 
-%% =========================================================
-% FIGURE 3
-% Spacecraft attitude
-%% =========================================================
-
+%% Figure 3: Spacecraft attitude
 figure('Name', 'Fig. 3 - Spacecraft Attitude', ...
        'Color', 'w');
 
@@ -190,11 +169,7 @@ exportgraphics( ...
     'BackgroundColor', 'white');
 
 
-%% =========================================================
-% FIGURE 4
-% End-effector tracking errors
-%% =========================================================
-
+%% Figure 4: End-effector tracking errors
 figure('Name', 'Fig. 4 - End-Effector Tracking Errors', ...
        'Color', 'w');
 
@@ -282,14 +257,8 @@ exportgraphics( ...
     'BackgroundColor', 'white');
 
 
-%% =========================================================
-% FIGURE 5
-% Dynamic parameter estimates
-%
-% ad_bar_hat =
-% [ad1 ... ad10 p0]
-%% =========================================================
-
+%% Figure 5: Dynamic parameter estimates
+% ad_bar_hat = [ad1 ... ad10 p0]
 figure('Name', 'Fig. 5 - Dynamic Parameter Estimates', ...
        'Color', 'w');
 
@@ -350,19 +319,20 @@ xlabel('Time (s)');
 ylabel('Dynamic parameter estimates (kg \cdot m^2)');
 
 lgd = legend( ...
-    '\hat{a}_{d1}', ...
-    '\hat{a}_{d2}', ...
-    '\hat{a}_{d3}', ...
-    '\hat{a}_{d4}', ...
-    '\hat{a}_{d5}', ...
-    '\hat{a}_{d6}', ...
-    '\hat{a}_{d7}', ...
-    '\hat{a}_{d8}', ...
-    '\hat{a}_{d9}', ...
-    '\hat{a}_{d10}', ...
+    '$\hat{a}_{d1}$', ...
+    '$\hat{a}_{d2}$', ...
+    '$\hat{a}_{d3}$', ...
+    '$\hat{a}_{d4}$', ...
+    '$\hat{a}_{d5}$', ...
+    '$\hat{a}_{d6}$', ...
+    '$\hat{a}_{d7}$', ...
+    '$\hat{a}_{d8}$', ...
+    '$\hat{a}_{d9}$', ...
+    '$\hat{a}_{d10}$', ...
     'Location', 'northeast');
 
 set(lgd, ...
+    'Interpreter', 'latex', ...
     'Color', 'w', ...
     'TextColor', 'k');
 
@@ -375,11 +345,7 @@ exportgraphics( ...
     'BackgroundColor', 'white');
 
 
-%% =========================================================
-% FIGURE 6
-% Estimate of initial angular momentum p0
-%% =========================================================
-
+%% Figure 6: Initial angular momentum estimate
 figure('Name', 'Fig. 6 - Initial Angular Momentum Estimate', ...
        'Color', 'w');
 
@@ -415,14 +381,8 @@ exportgraphics( ...
     'BackgroundColor', 'white');
 
 
-%% =========================================================
-% FIGURE 7
-% Kinematic parameter estimates
-%
-% ak_bar_hat =
-% [ak1 ak2 ak3 ak4 v0x v0y]
-%% =========================================================
-
+%% Figure 7: Kinematic parameter estimates
+% ak_bar_hat = [ak1 ak2 ak3 ak4 v0x v0y]
 figure('Name', 'Fig. 7 - Kinematic Parameter Estimates', ...
        'Color', 'w');
 
@@ -489,11 +449,7 @@ exportgraphics( ...
     'BackgroundColor', 'white');
 
 
-%% =========================================================
-% FIGURE 8
-% Estimate of initial COM velocity v0
-%% =========================================================
-
+%% Figure 8: Initial COM velocity estimate
 figure('Name', 'Fig. 8 - Initial COM Velocity Estimate', ...
        'Color', 'w');
 
@@ -549,11 +505,7 @@ exportgraphics( ...
     'BackgroundColor', 'white');
 
 
-%% =========================================================
-% FIGURE 9
-% Estimate of Hb
-%% =========================================================
-
+%% Figure 9: Estimated spacecraft inertia coefficient
 figure('Name', 'Fig. 9 - Estimated Hb', ...
        'Color', 'w');
 
@@ -589,15 +541,8 @@ exportgraphics( ...
     'BackgroundColor', 'white');
 
 
-%% =========================================================
 % Summary
-%% =========================================================
-
-fprintf('\n========================================\n');
-fprintf('FIGURE REPRODUCTION COMPLETE\n');
-fprintf('========================================\n');
-
-fprintf('Figures saved to:\n%s\n\n', output_dir);
+fprintf('\nFigures 2-9 saved to: %s\n', output_dir);
 
 fprintf('Nonzero-momenta final attitude: %.6f deg\n', ...
     rad2deg(sim_nonzero.theta_b(end)));
@@ -606,8 +551,5 @@ fprintf('Nonzero-momenta final tracking error: %.6e m\n', ...
     norm(sim_nonzero.delta_x(end,:)));
 
 if ~have_zero
-    fprintf('\nNOTE:\n');
-    fprintf('Figs. 2-4 currently contain only the red curves.\n');
-    fprintf(['Implement simulate_zero_momentum_plant.m to add ', ...
-             'the dashed blue paper comparison.\n']);
+    fprintf('Zero-momenta comparison unavailable for Figs. 2-4.\n');
 end

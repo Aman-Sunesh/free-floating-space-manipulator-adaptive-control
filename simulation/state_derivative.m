@@ -1,22 +1,7 @@
 function [dz, aux] = state_derivative(t, z, cfg)
-    % STATE_DERIVATIVE
-    %
-    % Velocity-level simulation of Xu et al.'s adaptive controller.
-    %
-    % State:
-    %
-    % z = [
-    %       theta_b;          % 1
-    %       phi;              % 3
-    %       x;                % 2
-    %       ad_bar_hat;       % 11 = [a_d_hat; p0_hat]
-    %       ak_bar_hat        % 6  = [a_k_hat; v0_hat]
-    %     ]
+    % Velocity-level simulation of Xu et al.'s adaptive RNS controller.
 
-
-    %% ---------------------------------------------------------
     % Unpack state
-    %% ---------------------------------------------------------
     theta_b = z(1);
 
     phi = z(2:4);
@@ -27,9 +12,7 @@ function [dz, aux] = state_derivative(t, z, cfg)
     ak_bar_hat = z(18:23);
 
 
-    %% ---------------------------------------------------------
     % Split generalized parameter estimates
-    %% ---------------------------------------------------------
     ad_hat = ad_bar_hat(1:10);
     p0_hat = ad_bar_hat(11);
 
@@ -37,9 +20,7 @@ function [dz, aux] = state_derivative(t, z, cfg)
     v0_hat = ak_bar_hat(5:6);
 
 
-    %% ---------------------------------------------------------
-    % Desired EE trajectory
-    %% ---------------------------------------------------------
+    % Desired end-effector trajectory
     [x_d, x_d_dot] = desired_trajectory(t);
 
 
@@ -49,20 +30,38 @@ function [dz, aux] = state_derivative(t, z, cfg)
     % For the planar case, the vector part of the quaternion
     % attitude error becomes sin(theta_error / 2).
     %% ---------------------------------------------------------
-    theta_error = theta_b - cfg.qbd;
+    R_b = [
+        cos(theta_b), -sin(theta_b);
+        sin(theta_b),  cos(theta_b)
+    ];
+    R_bd = [
+        cos(cfg.qbd), -sin(cfg.qbd);
+        sin(cfg.qbd),  cos(cfg.qbd)
+    ];
 
-    epsilon_bv = cfg.attitude_error_scale * sin(theta_error/2);
+    Delta_R_b = R_bd.' * R_b;
+    theta_error = atan2(Delta_R_b(2,1), Delta_R_b(1,1));
 
+    % Planar z-component of the error-quaternion vector.
+    epsilon_bv = sin(theta_error/2);
 
-    %% ---------------------------------------------------------
-    % TRUE plant momentum matrices
-    %% ---------------------------------------------------------
+    % True plant momentum matrices
+    I_actual = cfg.I;
+
+    % Optional terminal-link inertia perturbation (not a full capture model)
+    if isfield(cfg, 'capture_time') && ...
+       isfield(cfg, 'payload_inertia_scale') && ...
+       t >= cfg.capture_time
+
+        I_actual(4) = ...
+            cfg.I(4) * cfg.payload_inertia_scale;
+    end
+
     [Hb, Hbm, ~] = momentum_matrices( ...
-        phi, cfg.l, cfg.r, cfg.m, cfg.I);
-
+        phi, cfg.l, cfg.r, cfg.m, I_actual);
 
     %% ---------------------------------------------------------
-    % ESTIMATED momentum matrices
+    % Xu et al. (2016), Eq. (3): Reconstruct estimated momentum matrices
     %
     % Since:
     %
@@ -96,7 +95,7 @@ function [dz, aux] = state_derivative(t, z, cfg)
 
 
     %% ---------------------------------------------------------
-    % ESTIMATED kinematic Jacobians
+    % Xu et al. (2016), Eq. (5): Reconstruct estimated Jacobians
     %
     % Since:
     %
@@ -124,10 +123,7 @@ function [dz, aux] = state_derivative(t, z, cfg)
     end
 
 
-    %% ---------------------------------------------------------
-    % Xu Eq. (17)-(18):
-    % full adaptive joint-velocity controller
-    %% ---------------------------------------------------------
+    % Xu et al. (2016), Eqs. (17)-(18): Full adaptive joint-velocity controller
     [phi_dot_cmd, zeta] = adaptive_full_controller( ...
         Hb_hat, Hbm_hat, Jm_hat, ...
         p0_hat, v0_hat, ...
@@ -136,12 +132,14 @@ function [dz, aux] = state_derivative(t, z, cfg)
         cfg.lambda_b, cfg.Lambda_x);
 
 
-    %% ---------------------------------------------------------
-    % Ideal joint-velocity servo assumption from the paper
-    %
-    %       phi_dot == phi_dot_cmd
-    %% ---------------------------------------------------------
-    phi_dot = phi_dot_cmd;
+    % Joint-velocity execution: alpha = 1 gives Xu's ideal servo assumption
+    if isfield(cfg, 'servo_alpha')
+        alpha = cfg.servo_alpha;
+    else
+        alpha = 1.0;
+    end
+
+    phi_dot = alpha * phi_dot_cmd;
 
 
     %% ---------------------------------------------------------
@@ -154,6 +152,8 @@ function [dz, aux] = state_derivative(t, z, cfg)
     % Therefore:
     %
     %   omega_b = (p0 - Hbm*phi_dot) / Hb
+    %
+    % Xu et al. (2016), Eq. (2): Spacecraft angular velocity from momentum
     %% ---------------------------------------------------------
     omega_b = ...
         (cfg.p0_true - Hbm * phi_dot) / Hb;
@@ -162,9 +162,9 @@ function [dz, aux] = state_derivative(t, z, cfg)
     %% ---------------------------------------------------------
     % Actual end-effector velocity
     %
-    % Xu Eq. (5):
-    %
     %   x_dot = Yk*ak + v0
+    %
+    % Xu et al. (2016), Eq. (5): True end-effector velocity
     %% ---------------------------------------------------------
     [Yk_bar, Yk] = kinematic_regressor( ...
         theta_b, phi, omega_b, phi_dot);
@@ -172,33 +172,18 @@ function [dz, aux] = state_derivative(t, z, cfg)
     x_dot = Yk * cfg.ak_true + cfg.v0_true;
 
 
-    %% ---------------------------------------------------------
-    % Dynamic adaptation error y1
-    %
-    % Xu Eq. (12)
-    %% ---------------------------------------------------------
+    % Xu et al. (2016), Eqs. (12)-(13): Dynamic adaptation error y1
     y1 = ...
         Hb_hat * (omega_b + cfg.lambda_b * epsilon_bv) ...
         + Hbm_hat * (phi_dot - phi_dot_cmd);
 
 
-    %% ---------------------------------------------------------
-    % Dynamic regressor at the ACTUAL current motion
-    %% ---------------------------------------------------------
+    % Xu et al. (2016), Eq. (3): Dynamic regressor at actual joint velocities
     [Yd_bar, ~] = dynamic_regressor( ...
         phi, omega_b, phi_dot);
 
 
-    %% ---------------------------------------------------------
-    % Kinematic adaptation error y2
-    %
-    % Xu Eq. (22):
-    %
-    % y2 =
-    %   Jb_hat*omega_b
-    % + Jm_hat*(phi_dot - phi_dot_cmd)
-    % - (delta_x_dot + Lambda_x*delta_x)
-    %% ---------------------------------------------------------
+    % Xu et al. (2016), Eq. (22): Kinematic adaptation error y2
     delta_x = x - x_d;
 
     delta_x_dot = x_dot - x_d_dot;
@@ -209,20 +194,14 @@ function [dz, aux] = state_derivative(t, z, cfg)
         - (delta_x_dot + cfg.Lambda_x * delta_x);
 
 
-    %% ---------------------------------------------------------
-    % Parameter adaptation laws
-    %
-    % Xu Eq. (14) and Eq. (23)
-    %% ---------------------------------------------------------
+    % Xu et al. (2016), Eqs. (14) and (23): Parameter adaptation laws
     [ad_bar_hat_dot, ak_bar_hat_dot] = parameter_update( ...
         Yd_bar, y1, ...
         Yk_bar, y2, ...
         cfg.Gamma_d, cfg.Gamma_k);
 
 
-    %% ---------------------------------------------------------
     % State derivative
-    %% ---------------------------------------------------------
     theta_b_dot = omega_b;
 
     dz = [
@@ -234,9 +213,7 @@ function [dz, aux] = state_derivative(t, z, cfg)
     ];
 
 
-    %% ---------------------------------------------------------
     % Diagnostics for plotting/debugging
-    %% ---------------------------------------------------------
     aux.omega_b       = omega_b;
     aux.phi_dot       = phi_dot;
     aux.phi_dot_cmd   = phi_dot_cmd;

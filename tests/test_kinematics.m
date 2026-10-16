@@ -121,15 +121,26 @@ ak = [
     - m3*l3/M
     ];
 
-fprintf('Derived ak:\n');
-disp(ak.');
+%% Compare reconstructed parameters with Xu
+ak_xu = [0.6277; 1.1550; 1.2600; 1.3542];
 
-fprintf('Xu reported approximately:\n');
-disp([0.6277, 1.1550, 1.2600, 1.3542]);
+fprintf('\nReconstructed ak (full precision):\n');
+fprintf('    %.9f %.9f %.9f %.9f\n', ak);
 
+fprintf('Xu reported ak:\n');
+fprintf('    %.4f %.4f %.4f %.4f\n', ak_xu);
+
+ak_error = abs(ak - ak_xu);
+max_ak_error = max(ak_error);
+
+fprintf('Maximum coefficient difference from Xu:\n');
+fprintf('    %.9e m\n\n', max_ak_error);
+
+assert(max_ak_error < 5e-5, ...
+        'Kinematic parameters do not match Xu to published precision.');
 
 %% ---------------------------------------------------------
-% 3. Test Yk using finite differences
+% 3. Xu et al. (2016), Eq. (5): Test Yk using finite differences
 %
 % Reduced EE position relative to total system COM:
 %

@@ -10,7 +10,7 @@ function [Yd_bar, Yd] = dynamic_regressor(phi, omega_b, phi_dot)
     q2_dot = phi_dot(2);
     q3_dot = phi_dot(3);
     
-    % Dynamic regressor
+    % Xu et al. (2016), Eq. (3): Planar dynamic regressor
     Yd = [
         cos(q1) * ...
             (2*omega_b + q1_dot), ...
@@ -30,7 +30,7 @@ function [Yd_bar, Yd] = dynamic_regressor(phi, omega_b, phi_dot)
         q3_dot
     ];
 
-    % Generalized regressor including unknown initial angular momentum:
+    % Xu et al. (2016), Eq. (3): Generalized dynamic regressor
     %
     % Yd_bar * [a_d; p0] = Yd*a_d - p0
     Yd_bar = [Yd, -1];

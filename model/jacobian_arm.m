@@ -1,13 +1,15 @@
 function Jm = jacobian_arm(phi, L)
-
+% Joint angles
 q1 = phi(1);
 q2 = phi(2);
 q3 = phi(3);
 
+% Link lengths
 L1 = L(1);
 L2 = L(2);
 L3 = L(3);
 
+% End-effector position Jacobian with respect to joint angles
 Jm = [
     -L1*sin(q1) - L2*sin(q1+q2) - L3*sin(q1+q2+q3), ...
     -L2*sin(q1+q2) - L3*sin(q1+q2+q3), ...

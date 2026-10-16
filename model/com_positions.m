@@ -13,7 +13,7 @@ function [r_C0, r_C1, r_C2, r_C3, r_C] = ...
 
     % Geometry distances:
     % r0: spacecraft COM -> joint 1
-    % r1,r2,r3: link COM -> next joint / EE
+    % r1,r2: link COM -> next joint
     r0 = r(1);
     r1 = r(2);
     r2 = r(3);

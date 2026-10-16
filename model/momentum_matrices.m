@@ -1,6 +1,4 @@
 function [Hb, Hbm, Hm] = momentum_matrices(phi, l, r, m, I)
-    % MOMENTUM_MATRICES
-    %
     % Constructs the reduced inertia matrix for the planar
     % free-floating spacecraft + 3R manipulator:
     %
@@ -10,26 +8,13 @@ function [Hb, Hbm, Hm] = momentum_matrices(phi, l, r, m, I)
     % such that the angular momentum is
     %
     %       p = Hb*omega_b + Hbm*phi_dot
-    %
-    % Inputs:
-    %   phi = [q1; q2; q3]
-    %   l   = [l1; l2; l3]
-    %   r   = [r0; r1; r2; r3]
-    %   m   = [m0; m1; m2; m3]
-    %   I   = [I0; I1; I2; I3]
 
-
-    %% ---------------------------------------------------------
     % Joint angles
-    %% ---------------------------------------------------------
     q1 = phi(1);
     q2 = phi(2);
     q3 = phi(3);
 
-
-    %% ---------------------------------------------------------
-    % Geometry
-    %% ---------------------------------------------------------
+    % Link geometry
     l1 = l(1);
     l2 = l(2);
     l3 = l(3);
@@ -39,10 +24,7 @@ function [Hb, Hbm, Hm] = momentum_matrices(phi, l, r, m, I)
     r2 = r(3);
 
 
-    %% ---------------------------------------------------------
-    % Unit vectors along each link
-    % Expressed in the spacecraft/body frame
-    %% ---------------------------------------------------------
+    % Link direction vectors in the spacecraft frame
     u1 = [
         cos(q1);
         sin(q1)
@@ -75,11 +57,6 @@ function [Hb, Hbm, Hm] = momentum_matrices(phi, l, r, m, I)
     du2 = S * u2;
     du3 = S * u3;
 
-
-    %% ---------------------------------------------------------
-    % Body COM positions relative to spacecraft COM
-    %% ---------------------------------------------------------
-
     % Spacecraft COM
     s0 = [0; 0];
 
@@ -99,11 +76,7 @@ function [Hb, Hbm, Hm] = momentum_matrices(phi, l, r, m, I)
        + l3 * u3;
 
 
-    %% ---------------------------------------------------------
-    % Derivatives of each COM position with respect to
-    % phi = [q1 q2 q3]
-    %% ---------------------------------------------------------
-
+    % Body COM position derivatives with respect to joint angles
     Ds0 = zeros(2,3);
 
     Ds1 = [
@@ -125,9 +98,7 @@ function [Hb, Hbm, Hm] = momentum_matrices(phi, l, r, m, I)
     ];
 
 
-    %% ---------------------------------------------------------
-    % Total system COM
-    %% ---------------------------------------------------------
+    % Total system COM and its joint-angle derivatives
     M = sum(m);
 
     sC = ( ...
@@ -144,9 +115,7 @@ function [Hb, Hbm, Hm] = momentum_matrices(phi, l, r, m, I)
         m(4)*Ds3 ) / M;
 
 
-    %% ---------------------------------------------------------
-    % Each body's position relative to total system COM
-    %% ---------------------------------------------------------
+    % Body COM positions and derivatives relative to total system COM
     rho0 = s0 - sC;
     rho1 = s1 - sC;
     rho2 = s2 - sC;
@@ -207,9 +176,7 @@ function [Hb, Hbm, Hm] = momentum_matrices(phi, l, r, m, I)
     H = 0.5 * (H + H.');
 
 
-    %% ---------------------------------------------------------
-    % Extract momentum blocks
-    %% ---------------------------------------------------------
+    % Xu et al. (2016), Eqs. (1)-(2): Inertia blocks for angular momentum
     Hb  = H(1,1);
     Hbm = H(1,2:4);
     Hm  = H(2:4,2:4);

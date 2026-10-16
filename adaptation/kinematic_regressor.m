@@ -23,7 +23,7 @@ function [Yk_bar, Yk] = kinematic_regressor( ...
     w2 = omega_b + q1_dot + q2_dot;
     w3 = omega_b + q1_dot + q2_dot + q3_dot;
 
-    % Kinematic regressor:
+    % Xu et al. (2016), Eq. (5): Kinematic regressor
     %
     % x_dot - v0 = Yk * ak
     %
@@ -40,7 +40,7 @@ function [Yk_bar, Yk] = kinematic_regressor( ...
          w3*cos(alpha3)
     ];
 
-    % Generalized kinematic regressor:
+    % Xu et al. (2016), Eq. (5): Generalized kinematic regressor
     %
     % Yk_bar * [ak; v0] = Yk*ak + v0 = x_dot
     Yk_bar = [Yk, eye(2)];

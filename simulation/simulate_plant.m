@@ -1,13 +1,8 @@
 function sim = simulate_plant(cfg)
-    % SIMULATE_PLANT
-    %
-    % Runs the velocity-level adaptive FFSM simulation using
-    % explicit Euler integration with the paper's sampling period.
+    % Xu et al. (2016), Section IV: Nonzero-momenta adaptive simulation
+    % Uses explicit Euler integration with the configured sampling period.
 
-
-    %% ---------------------------------------------------------
     % Initial configuration
-    %% ---------------------------------------------------------
     theta_b0 = cfg.qb_0;
     phi0 = cfg.qm_0;
 
@@ -15,9 +10,7 @@ function sim = simulate_plant(cfg)
     phi_dot0 = cfg.qm_dot_0;
 
 
-    %% ---------------------------------------------------------
-    % Initial EE position from physical geometry
-    %% ---------------------------------------------------------
+    % Initial end-effector position from physical geometry
     [~, x_ee_0] = forward_kinematics(phi0, cfg.L);
 
     Rb0 = [
@@ -29,13 +22,8 @@ function sim = simulate_plant(cfg)
        + Rb0 * ([cfg.r(1); 0] + x_ee_0(1:2));
 
 
-    %% ---------------------------------------------------------
-    % Compute TRUE initial angular momentum
-    %
-    % This should reproduce approximately:
-    %
-    %       p0 = -1.6467
-    %% ---------------------------------------------------------
+    % Xu et al. (2016), Eq. (2): True initial angular momentum
+    % Expected value: approximately -1.6467 kg m^2/s
     [p0_true, ~, ~] = momentum_state( ...
         phi0, ...
         omega_b0, ...
@@ -45,11 +33,8 @@ function sim = simulate_plant(cfg)
     cfg.p0_true = p0_true;
 
 
-    %% ---------------------------------------------------------
-    % Derive the TRUE kinematic parameters from physical geometry
-    %
-    % We derive these rather than inserting Xu's printed values.
-    %% ---------------------------------------------------------
+    % True kinematic parameters reconstructed from physical COM geometry
+    % These are derived rather than copied from Xu's rounded values.
     M = sum(cfg.m);
 
     m0 = cfg.m(1);
@@ -92,17 +77,8 @@ function sim = simulate_plant(cfg)
     ];
 
 
-    %% ---------------------------------------------------------
-    % Compute TRUE v0 from the initial physical motion
-    %
-    % First compute the actual initial EE velocity from the
-    % spacecraft-COM description:
-    %
-    % x_dot =
-    %   R_C0_dot
-    % + Jb_geom*omega_b
-    % + Jm_geom*phi_dot
-    %% ---------------------------------------------------------
+    % Initial EE velocity from spacecraft COM motion and geometric Jacobians
+    % x_dot = R_C0_dot + Jb_geom*omega_b + Jm_geom*phi_dot
     [Jb_geom0, Jm_geom0] = jacobians( ...
         phi0, cfg.L, theta_b0, r0);
 
@@ -112,13 +88,8 @@ function sim = simulate_plant(cfg)
         + Jm_geom0 * phi_dot0;
 
 
-    % From:
-    %
-    %   x_dot = Yk*ak + v0
-    %
-    % therefore:
-    %
-    %   v0 = x_dot - Yk*ak
+    % Xu et al. (2016), Eq. (5): True total-system COM velocity
+    % v0 = x_dot - Yk*ak
     [~, Yk0] = kinematic_regressor( ...
         theta_b0, phi0, omega_b0, phi_dot0);
 
@@ -126,9 +97,7 @@ function sim = simulate_plant(cfg)
         x_dot0 - Yk0 * cfg.ak_true;
 
 
-    %% ---------------------------------------------------------
     % Print important validation values
-    %% ---------------------------------------------------------
     fprintf('Derived initial angular momentum p0:\n');
     fprintf('    %.6f\n\n', cfg.p0_true);
 
@@ -139,16 +108,14 @@ function sim = simulate_plant(cfg)
     disp(cfg.v0_true.');
 
 
-    %% ---------------------------------------------------------
     % Initial adaptive parameter estimates
-    %% ---------------------------------------------------------
     ad_bar_hat0 = cfg.ad_bar_hat_0;
     ak_bar_hat0 = cfg.ak_bar_hat_0;
 
 
-    %% ---------------------------------------------------------
-    % Full initial state
-    %% ---------------------------------------------------------
+    % State: theta_b(1), phi(2:4), x(5:6)
+    % Dynamic estimates (7:17), kinematic estimates (18:23)
+    % Total: 23 states
     z0 = [
         theta_b0;
         phi0;
@@ -158,9 +125,7 @@ function sim = simulate_plant(cfg)
     ];
 
 
-    %% ---------------------------------------------------------
     % Time vector
-    %% ---------------------------------------------------------
     dt = cfg.dt;
 
     N = floor(cfg.t_final / dt) + 1;
@@ -168,9 +133,7 @@ function sim = simulate_plant(cfg)
     t = (0:N-1).' * dt;
 
 
-    %% ---------------------------------------------------------
-    % Storage
-    %% ---------------------------------------------------------
+    % Simulation storage
     nz = length(z0);
 
     Z = zeros(N, nz);
@@ -191,9 +154,7 @@ function sim = simulate_plant(cfg)
     Hb_hat_log = zeros(N,1);
 
 
-    %% ---------------------------------------------------------
     % Simulation loop
-    %% ---------------------------------------------------------
     for k = 1:N-1
 
         zk = Z(k,:).';
@@ -222,9 +183,7 @@ function sim = simulate_plant(cfg)
     end
 
 
-    %% ---------------------------------------------------------
-    % Evaluate final point for logging
-    %% ---------------------------------------------------------
+    % Evaluate diagnostics at the final sample
     [~, aux] = state_derivative(t(end), Z(end,:).', cfg);
 
     omega_b_log(end) = aux.omega_b;
@@ -242,9 +201,7 @@ function sim = simulate_plant(cfg)
     Hb_hat_log(end) = aux.Hb_hat;
 
 
-    %% ---------------------------------------------------------
     % Package results
-    %% ---------------------------------------------------------
     sim.t = t;
     sim.z = Z;
 

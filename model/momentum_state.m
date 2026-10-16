@@ -4,13 +4,13 @@ function [p, p_base, p_arm, Hb, Hbm] = ...
 % Compute momentum matrices at current configuration
 [Hb, Hbm, ~] = momentum_matrices(phi, l, r, m, I);
 
-% Spacecraft contribution to angular momentum
+% Angular momentum contribution from spacecraft angular velocity
 p_base = Hb * omega_b;
 
-% Manipulator contribution to angular momentum
+% Angular momentum contribution from joint velocities
 p_arm = Hbm * phi_dot;
 
-% Total angular momentum
+% Xu et al. (2016), Eq. (2): Total angular momentum (planar form)
 p = p_base + p_arm;
 
 end

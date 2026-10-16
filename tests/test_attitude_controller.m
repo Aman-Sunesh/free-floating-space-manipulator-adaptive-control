@@ -16,10 +16,6 @@ fprintf('========================================\n\n');
 theta_b = cfg.qb_0;
 phi = cfg.qm_0;
 
-omega_b = cfg.qb_dot_0;
-phi_dot = cfg.qm_dot_0;
-
-
 %% Initial adaptive estimates
 
 ad_bar_hat = cfg.ad_bar_hat_0;
@@ -28,20 +24,14 @@ ad_hat = ad_bar_hat(1:10);
 p0_hat = ad_bar_hat(11);
 
 
-%% ---------------------------------------------------------
-% Construct estimated Hb
-%% ---------------------------------------------------------
-
+% Xu et al. (2016), Eq. (3): Construct estimated Hb
 [~, Yd_Hb] = dynamic_regressor( ...
     phi, 1, zeros(3,1));
 
 Hb_hat = Yd_Hb * ad_hat;
 
 
-%% ---------------------------------------------------------
-% Construct estimated Hbm
-%% ---------------------------------------------------------
-
+% Xu et al. (2016), Eq. (3): Construct estimated Hbm
 Hbm_hat = zeros(1,3);
 
 for j = 1:3
@@ -79,10 +69,7 @@ zeta = [
     ];
 
 
-%% ---------------------------------------------------------
-% Section B adaptive attitude controller
-%% ---------------------------------------------------------
-
+% Xu et al. (2016), Eq. (8): Adaptive attitude controller
 phi_dot_cmd = adaptive_attitude_controller( ...
     Hb_hat, ...
     Hbm_hat, ...

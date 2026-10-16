@@ -22,7 +22,7 @@ phi_dot0 = cfg.qm_dot_0;
 
 
 %% ---------------------------------------------------------
-% True momentum
+% Xu et al. (2016), Eq. (2): True initial angular momentum
 %% ---------------------------------------------------------
 
 [p0, ~, ~, Hb, Hbm] = ...
@@ -74,7 +74,7 @@ ak = [
 
 
 %% ---------------------------------------------------------
-% True reduced Jm
+% Xu et al. (2016), Eq. (5): True reduced manipulator Jacobian
 %% ---------------------------------------------------------
 
 Jm = zeros(2,3);
@@ -139,7 +139,7 @@ epsilon_bv = sin(theta_error/2);
 
 
 %% ---------------------------------------------------------
-% Controller
+% Xu et al. (2016), Eqs. (17)-(18): Known-parameter controller
 %% ---------------------------------------------------------
 
 phi_dot_cmd = known_parameter_controller( ...
@@ -170,7 +170,7 @@ assert(all(isfinite(phi_dot_cmd)), ...
 
 
 %% ---------------------------------------------------------
-% Check attitude-control momentum condition
+% Xu et al. (2016), Eq. (9): Attitude-control momentum condition
 %
 % Hbm*phi_dot should equal:
 %

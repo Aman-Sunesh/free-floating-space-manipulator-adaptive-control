@@ -1,4 +1,5 @@
 function cfg = paper_params()
+% Xu et al. (2016), Table I and Section IV: Simulation parameters.
 
 % Masses
 m0 = 61.2;
@@ -25,10 +26,6 @@ r3 = 0.70;
 
 % Desired spacecraft attitude
 qbd = 0;
-
-% Planar attitude-error scaling used for figure reproduction
-% 2 gives epsilon_bv = 2*sin(theta_error/2) ~ theta_error for small angles
-attitude_error_scale = 2;
 
 % Simulation
 dt = 0.002;
@@ -140,7 +137,5 @@ cfg.Gamma_k = Gamma_k;
 
 cfg.ad_bar_hat_0 = ad_bar_hat_0;
 cfg.ak_bar_hat_0 = ak_bar_hat_0;
-
-cfg.attitude_error_scale = attitude_error_scale;
 
 end

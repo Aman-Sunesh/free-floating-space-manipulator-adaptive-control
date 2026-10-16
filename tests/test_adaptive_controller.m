@@ -30,7 +30,8 @@ assert(all(size(cfg.Gamma_k) == [6 6]), ...
 
 
 %% ---------------------------------------------------------
-% Test adaptation law dimensions directly
+% Xu et al. (2016), Eqs. (14) and (23):
+% Test dynamic and kinematic adaptation-law dimensions
 %% ---------------------------------------------------------
 
 phi = cfg.qm_0;
@@ -119,26 +120,6 @@ assert(all(isfinite(sim.ak_bar_hat(:))), ...
 %% ---------------------------------------------------------
 % Validate independently derived plant constants
 %% ---------------------------------------------------------
-
-fprintf('Derived p0:\n');
-fprintf('    %.8f\n', sim.p0_true);
-
-fprintf('Xu p0:\n');
-fprintf('    -1.6467\n\n');
-
-fprintf('Derived v0:\n');
-disp(sim.v0_true.');
-
-fprintf('Expected approximately:\n');
-disp([0.0988, 0.0943]);
-
-fprintf('Derived ak:\n');
-disp(sim.ak_true.');
-
-fprintf('Expected approximately:\n');
-disp([0.6277, 1.1550, 1.2600, 1.3542]);
-
-
 assert(abs(sim.p0_true - (-1.6467)) < 5e-4, ...
     'Derived p0 does not match Xu.');
 

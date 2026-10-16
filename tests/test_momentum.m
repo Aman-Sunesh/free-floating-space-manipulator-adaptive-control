@@ -22,7 +22,7 @@ phi_dot = cfg.qm_dot_0;
 
 
 %% ---------------------------------------------------------
-% 1. Compute physical momentum
+% 1. Xu et al. (2016), Eq. (2): Compute physical angular momentum
 %% ---------------------------------------------------------
 
 [p, p_base, p_arm, Hb, Hbm] = ...
@@ -69,7 +69,7 @@ assert(abs(p - p0_xu) < 5e-4, ...
 
 
 %% ---------------------------------------------------------
-% 2. Test dynamic regressor
+% 2. Xu et al. (2016), Eq. (3): Test dynamic regressor
 %% ---------------------------------------------------------
 
 ad_xu = [

@@ -11,20 +11,20 @@ function [phi_dot_cmd, zeta] = adaptive_full_controller( ...
     % Estimated reaction null-space projector
     T_hat = reaction_null_projector(Hbm_hat);
     
-    % Joint velocity used for spacecraft attitude regulation
+    % Xu et al. (2016), Eq. (8): Attitude-regulation joint velocity
     phi_att_dot = pinv(Hbm_hat) * (p0_hat + Hb_hat * lambda_b * epsilon_bv);
     
-    % Remaining EE velocity that must be generated through the RNS
+    % Remaining end-effector velocity for RNS tracking
     v_remaining = ...
         - v0_hat ...
         + x_d_dot ...
         - Lambda_x * delta_x ...
         - Jm_hat * phi_att_dot;
 
-    % Choose zeta so the RNS motion generates the remaining EE velocity
+    % Xu et al. (2016), Eq. (17): Compute the RNS tracking input
     zeta = pinv(Jm_hat * T_hat) * v_remaining;
 
-    % Total commanded joint velocity
+    % Xu et al. (2016), Eq. (18): Complete joint-velocity command
     phi_dot_cmd = T_hat * zeta + phi_att_dot;
 
 end
